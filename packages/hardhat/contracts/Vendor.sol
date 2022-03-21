@@ -8,6 +8,8 @@ contract Vendor is Ownable {
 
   event BuyTokens(address buyer, uint256 amountOfETH, uint256 amountOfTokens);
 
+  event SellTokens(address seller, uint amountofEth, uint amountOfTokens);
+
   YourToken public yourToken;
   uint public constant tokensPerEth = 100;
 
@@ -15,20 +17,27 @@ contract Vendor is Ownable {
     yourToken = YourToken(tokenAddress);
   }
 
-  // ToDo: create a payable buyTokens() function:
+  
   function buyTokens() public payable {
     uint amountOfTokens = msg.value * tokensPerEth;
     yourToken.transfer(msg.sender, amountOfTokens);
     emit BuyTokens(msg.sender, msg.value, amountOfTokens);
   }
 
-  // ToDo: create a withdraw() function that lets the owner withdraw ETH
   function withdraw() public onlyOwner {
     uint amount = address(this).balance;
     (bool success, ) = payable(msg.sender).call{value: amount}("");
     require(success, "Withdraw failed!");
   }
 
-  // ToDo: create a sellTokens() function:
+  function sellTokens(uint amount) public{
+    bool success = yourToken.transferFrom(msg.sender, address(this), amount);
+    require(success, "Transaction failed, check for token approval!");
 
+    uint amountToPay = amount/tokensPerEth;
+
+    (success, ) = payable(msg.sender).call{value: amountToPay}("");
+    require(success, "Sell failed!");
+    emit SellTokens(msg.sender, amountToPay, amount);
+  }
 }
