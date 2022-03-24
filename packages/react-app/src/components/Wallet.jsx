@@ -134,7 +134,7 @@ export default function Wallet(props) {
       const extraPkDisplay = [];
       extraPkDisplayAdded[wallet.address] = true;
       extraPkDisplay.push(
-        <div style={{ fontSize: 16, padding: 2, backgroundStyle: "#89e789" }}>
+        <div style={{ fontSize: 12, padding: 2, backgroundStyle: "#89e789" }}>
           <a href={"/pk#" + pk}>
             <Address minimized address={wallet.address} ensProvider={props.ensProvider} /> {wallet.address.substr(0, 6)}
           </a>
@@ -148,7 +148,7 @@ export default function Wallet(props) {
           if (!extraPkDisplayAdded[pastwallet.address] /* && selectedAddress!=pastwallet.address */) {
             extraPkDisplayAdded[pastwallet.address] = true;
             extraPkDisplay.push(
-              <div style={{ fontSize: 16 }}>
+              <div style={{ fontSize: 12 }}>
                 <a href={"/pk#" + pastpk}>
                   <Address minimized address={pastwallet.address} ensProvider={props.ensProvider} />{" "}
                   {pastwallet.address.substr(0, 6)}

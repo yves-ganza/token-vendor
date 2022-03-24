@@ -1,6 +1,6 @@
 import Portis from "@portis/web3";
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import { Alert, Button, Card, Col, Divider, Input, List, Menu, Row, Collapse } from "antd";
+import { Alert, Button, Card, Col, Divider, Input, List, Menu, Row, Collapse, Dropdown } from "antd";
 import "antd/dist/antd.css";
 import Authereum from "authereum";
 import {
@@ -43,7 +43,7 @@ const { ethers } = require("ethers");
 
 
 /// 📡 What chain are your contracts deployed to?
-const targetNetwork = NETWORKS.localhost; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+const targetNetwork = NETWORKS.rinkeby; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
 // 😬 Sorry for all the console logging
 const DEBUG = true;
@@ -371,11 +371,7 @@ function App(props) {
       );
     }
   } else {
-    networkDisplay = (
-      <div style={{ zIndex: -1, position: "absolute", right: 154, top: 28, padding: 16, color: targetNetwork.color }}>
-        {targetNetwork.name}
-      </div>
-    );
+    networkDisplay = <div style={{ color: targetNetwork.color }}>{targetNetwork.name}</div>;
   }
 
   const loadWeb3Modal = useCallback(async () => {
@@ -521,9 +517,25 @@ function App(props) {
 
   return (
     <div className="App">
-      <Header />
-
-      {networkDisplay}
+      <Row align="middle" justify="space-between">
+        <Col>
+          <Header />
+        </Col>
+        <Col style={{ padding: 8 }}>
+          <Account
+            address={address}
+            localProvider={localProvider}
+            userSigner={userSigner}
+            mainnetProvider={mainnetProvider}
+            price={price}
+            web3Modal={web3Modal}
+            loadWeb3Modal={loadWeb3Modal}
+            logoutOfWeb3Modal={logoutOfWeb3Modal}
+            blockExplorer={blockExplorer}
+          />
+          {networkDisplay}
+        </Col>
+      </Row>
 
       <div style={{ padding: 8, marginTop: 32, width: 300, margin: "auto" }}>
         <Card title="Your Tokens" extra={<a href="#">code</a>}>
@@ -661,59 +673,44 @@ function App(props) {
         <Balance balance={vendorETHBalance} fontSize={64} /> ETH
       </div>
 
-        <div style={{ width: 500, margin: "auto", marginTop: 64 }}>
-          <Collapse bordered={false} className="site-collapse-custom-collapse">
-            <Collapse.Panel header="Buy Token Events" key="1" className="site-collapse-custom-panel">
-              <List
-                dataSource={buyTokensEvents}
-                renderItem={item => {
-                  return (
-                    <List.Item key={item.blockNumber + item.blockHash}>
-                      <Address value={item.args[0]} ensProvider={mainnetProvider} fontSize={16} /> paid
-                      <Balance balance={item.args[1]} />
-                      ETH to get
-                      <Balance balance={item.args[2]} />
-                      Tokens
-                    </List.Item>
-                  );
-                }}
-              />
-            </Collapse.Panel>
-            <Collapse.Panel header="Sell Token Events" key="2" className="site-collapse-custom-panel">
-              <List
-                dataSource={sellTokensEvents}
-                renderItem={item => {
-                  return (
-                    <List.Item key={item.blockNumber + item.blockHash}>
-                      <Address value={item.args[0]} ensProvider={mainnetProvider} fontSize={16} /> sold
-                      <Balance balance={item.args[2]} />
-                      Tokens for
-                      <Balance balance={item.args[1]} />
-                      Eth
-                    </List.Item>
-                  );
-                }}
-              />
-            </Collapse.Panel>
-          </Collapse>
-        </div>
-      <ThemeSwitch />
-
-      {/* 👨‍💼 Your account is in the top right with a wallet at connect options */}
-      <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }}>
-        <Account
-          address={address}
-          localProvider={localProvider}
-          userSigner={userSigner}
-          mainnetProvider={mainnetProvider}
-          price={price}
-          web3Modal={web3Modal}
-          loadWeb3Modal={loadWeb3Modal}
-          logoutOfWeb3Modal={logoutOfWeb3Modal}
-          blockExplorer={blockExplorer}
-        />
-        {faucetHint}
+      <div style={{ width: 500, margin: "auto", marginTop: 64 }}>
+        <Collapse bordered={false} className="site-collapse-custom-collapse">
+          <Collapse.Panel header="Buy Token Events" key="1" className="site-collapse-custom-panel">
+            <List
+              dataSource={buyTokensEvents}
+              renderItem={item => {
+                return (
+                  <List.Item key={item.blockNumber + item.blockHash}>
+                    <Address value={item.args[0]} ensProvider={mainnetProvider} fontSize={16} /> paid
+                    <Balance balance={item.args[1]} />
+                    ETH to get
+                    <Balance balance={item.args[2]} />
+                    Tokens
+                  </List.Item>
+                );
+              }}
+            />
+          </Collapse.Panel>
+          <Collapse.Panel header="Sell Token Events" key="2" className="site-collapse-custom-panel">
+            <List
+              dataSource={sellTokensEvents}
+              renderItem={item => {
+                return (
+                  <List.Item key={item.blockNumber + item.blockHash}>
+                    <Address value={item.args[0]} ensProvider={mainnetProvider} fontSize={16} /> sold
+                    <Balance balance={item.args[2]} />
+                    Tokens for
+                    <Balance balance={item.args[1]} />
+                    Eth
+                  </List.Item>
+                );
+              }}
+            />
+          </Collapse.Panel>
+        </Collapse>
       </div>
+
+      <ThemeSwitch />
 
       <div style={{ marginTop: 32, opacity: 0.5 }}>
         Created with <span style={{ padding: 4 }}>💗</span> by{" "}
@@ -721,15 +718,20 @@ function App(props) {
       </div>
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
       <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
-        <Row align="middle" gutter={[4, 4]}>
-          <Row span={8}>
-            <Ramp price={price} address={address} networks={NETWORKS} />
-          </Row>
-
-          <Row span={8} style={{ textAlign: "center", opacity: 0.8 }}>
-            <GasGauge gasPrice={gasPrice} />
-          </Row>
-        </Row>
+        <Dropdown 
+          overlay={
+            <Row justify="center" gutter={[4, 4]}>
+              <Row span={8}>
+                <Ramp price={price} address={address} networks={NETWORKS} />
+              </Row>
+              <Row span={8} style={{ opacity: 0.8 }}>
+                <GasGauge gasPrice={gasPrice} />
+              </Row>
+            </Row>
+          }
+        >
+          <a className="ant-dopdown-link" onClick={e => e.preventDefault()}>⛽️ Tools</a>
+        </Dropdown>
       </div>
     </div>
   );
